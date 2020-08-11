@@ -12,6 +12,11 @@ maindir = os.getcwd()
 
 
 class Interface(Tk):
+    
+    def refresh(self):
+        self.destroy()
+        self.__init__()
+    
     def __init__(self):
         super().__init__()
         self.title("Listing Notifier")
@@ -27,8 +32,34 @@ class Interface(Tk):
         self.geometry(settings["window_geometry"])
         win_res = settings["window_resizeability"].split(',')
         self.resizable(win_res[0], win_res[1])
+        
+        # dynamically change models based on the manufacturer selected
+        def change_models(model_field, make):
+            model_field.destroy()
 
+            model_field = ttk.Combobox(mainc, width = 17) 
+            model_field.grid(row=30,column=20)
+
+            with open("./resources/makes.json", 'r', encoding="utf-8", newline='') as mjson:
+                data = mjson.read()
+                makes_dict = (json.loads(data))
+                makes_dict = makes_dict['autoscout24_ch']
+                mjson.close()
+
+            makes = []
+            for i in range(len(makes_dict)):
+                if i == 0:
+                    makes.append("Any")
+                else:
+                    makes.append(makes_dict[i]['n'])
+
+            # adding combobox drop down list 
+            model_field['values'] = tuple(makes)
+            model_field.current(0)
+
+        # retrieve inserted inputs
         def retrieve_inputs():
+            
             search_input = []
             search_input.append(make_field.get())
             search_input.append(model_field.get())
@@ -61,12 +92,12 @@ class Interface(Tk):
         title['font'] = title_font
 
         # manufacturer
-        makeTxt = ttk.Label(mainc, text="Car manufacturer:")
-        makeTxt['font'] = labelf
-        makeTxt.grid(row=20,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
+        make_txt = ttk.Label(mainc, text="Car manufacturer:")
+        make_txt['font'] = labelf
+        make_txt.grid(row=20,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
 
         make_field = ttk.Combobox(mainc, width = 17) 
-        make_field.grid(row=20,column=20)
+        make_field.grid(row=30,column=10)
 
         with open("./resources/makes.json", 'r', encoding="utf-8", newline='') as mjson:
             data = mjson.read()
@@ -85,10 +116,13 @@ class Interface(Tk):
         make_field['values'] = tuple(makes)
         make_field.current(0)
 
+        make_field.bind("<<ComboboxSelected>>", lambda _ : change_models(model_field, make_field.get()))
+
         # model
         model_txt = ttk.Label(mainc, text="Car model:")
         model_txt['font'] = labelf
-        model_txt.grid(row=30,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
+        model_txt.grid(row=20,column=20,padx=(10,10), pady=(5,5), sticky = 'w')
+        
         model_field = ttk.Entry(mainc)
         model_field.grid(row=30,column=20)
 
@@ -139,6 +173,6 @@ class Interface(Tk):
 
 
         # search button
-        search_button = Button(mainc, text="Search!",bg='#5e5e5e', fg='#eae8e8', command=retrieve_inputs)
+        search_button = Button(mainc, text="Index!",bg='#5e5e5e', fg='#eae8e8', command=retrieve_inputs)
         search_button.grid(row=80,column=10,columnspan=40,padx=(10, 10),pady=(10, 10))
         search_button['font'] = title_font
