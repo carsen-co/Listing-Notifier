@@ -7,59 +7,43 @@ from tkinter import *
 import tkinter.ttk as ttk
 import tkinter.font as tkfont
 
-global maindir
-maindir = os.getcwd()
-
+MAINDIR = os.getcwd()
+_DBJSON = './resources/db.json'
+_MAKESJSON = './resources/makes.json'
+_SETTINGSJSON = './resources/settings.json'
 
 class Interface(Tk):
-    
-    def refresh(self):
-        self.destroy()
-        self.__init__()
-    
-    def __init__(self):
-        super().__init__()
-        self.title("Listing Notifier")
-        #self.iconbitmap('./path')
 
-        # read and apply settings
-        with open('./resources/settings.json', mode='r') as st:
-            settings = st.read()
-            settings = (json.loads(settings))
-            settings = settings['settings'][0]
-            st.close()
-
-        self.geometry(settings["window_geometry"])
-        win_res = settings["window_resizeability"].split(',')
-        self.resizable(win_res[0], win_res[1])
+    # dynamically change models based on the manufacturer selected
+    def change_models(self, mainc, selected_make):
         
-        # dynamically change models based on the manufacturer selected
-        def change_models(selected_make):
-            
-            global model_field
-            model_field = ttk.Combobox(mainc, width = 17) 
-            model_field.grid(row=30,column=20)
+        global model_field
+        model_field = ttk.Combobox(mainc, width = 17) 
+        model_field.grid(row=30,column=20)
 
-            with open("./resources/makes.json", 'r', encoding="utf-8", newline='') as mjson:
-                data = mjson.read()
-                makes_dict = (json.loads(data))
-                makes_dict = makes_dict['autoscout24_ch']
-                mjson.close()
+        with open(_MAKESJSON, 'r', encoding="utf-8", newline='') as mjson:
+            data = mjson.read()
+            makes_dict = (json.loads(data))
+            makes_dict = makes_dict['autoscout24_ch']
+            mjson.close()
 
-            for make in makes_dict:
-                if make['n'] == selected_make:
-                    models = [md['m'] for md in make['models']]
-                    models.insert(0, 'Any')
+        for make in makes_dict:
+            if make['n'] == selected_make:
+                models = [md['m'] for md in make['models']]
+                models.insert(0, 'Any')
 
-            # adding combobox drop down list 
-            model_field['values'] = tuple(models)
-            model_field.current(0)
+        # adding combobox drop down list 
+        model_field['values'] = tuple(models)
+        model_field.current(0)
+
+
+    def __init__(self):
 
         # retrieve inserted inputs
         def retrieve_inputs():
 
             try:
-                with open('./resources/db.json') as dbjson:
+                with open(_DBJSON) as dbjson:
                     fields_input = json.load(dbjson)
                     dbjson.close()
             except FileNotFoundError:
@@ -78,8 +62,25 @@ class Interface(Tk):
             search['mileage'] = str(mileage_field_from.get()) + " - " + str(mileage_field_to.get())
             fields_input['searches'].append(search)
 
-            with open('./resources/db.json', 'w') as dbjson:
+            with open(_DBJSON, 'w') as dbjson:
                 json.dump(fields_input, dbjson)
+
+
+        # __init__ begin
+        super().__init__()
+        self.title("Listing Notifier")
+        #self.iconbitmap('./path')
+
+        # read and apply settings
+        with open(_SETTINGSJSON, mode='r') as st:
+            settings = st.read()
+            settings = (json.loads(settings))
+            settings = settings['settings'][0]
+            st.close()
+
+        self.geometry(settings["window_geometry"])
+        win_res = settings["window_resizeability"].split(',')
+        self.resizable(win_res[0], win_res[1])
 
 
         # ========== MAIN CONTENT
@@ -107,7 +108,7 @@ class Interface(Tk):
         make_field = ttk.Combobox(mainc, width = 17) 
         make_field.grid(row=30,column=10)
 
-        with open("./resources/makes.json", 'r', encoding="utf-8", newline='') as mjson:
+        with open(_MAKESJSON, 'r', encoding="utf-8", newline='') as mjson:
             data = mjson.read()
             makes_dict = (json.loads(data))
             makes_dict = makes_dict['autoscout24_ch']
@@ -119,7 +120,7 @@ class Interface(Tk):
         # combobox drop down list 
         make_field['values'] = tuple(makes)
         make_field.current(0)
-        make_field.bind("<<ComboboxSelected>>", lambda _ : change_models(make_field.get()))
+        make_field.bind("<<ComboboxSelected>>", lambda _ : self.change_models(mainc, make_field.get()))
 
 
         # model
