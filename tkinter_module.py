@@ -59,7 +59,7 @@ class Interface(Tk):
         def retrieve_inputs():
 
             try:
-                with open('makes.json') as dbjson:
+                with open('./resources/db.json') as dbjson:
                     fields_input = json.load(dbjson)
                     dbjson.close()
             except FileNotFoundError:
@@ -68,11 +68,14 @@ class Interface(Tk):
 
             search = {}
             search['manufacturer'] = make_field.get()
-            search['model'] = model_field.get()
+            try:
+                search['model'] = model_field.get()
+            except NameError:
+                search['model'] = ''
             search['version'] = model_version_field.get()
             search['price'] = str(price_field_from.get()) + " - " + str(price_field_to.get())
             search['registration'] = str(reg_field_from.get()) + " - " + str(reg_field_to.get())
-            search['from miles'] = str(mileage_field_from.get()) + " - " + str(mileage_field_to.get())
+            search['mileage'] = str(mileage_field_from.get()) + " - " + str(mileage_field_to.get())
             fields_input['searches'].append(search)
 
             with open('./resources/db.json', 'w') as dbjson:
@@ -82,6 +85,8 @@ class Interface(Tk):
         # ========== MAIN CONTENT
         title_font = tkfont.Font(family='Montserrat' ,size=16, weight='bold')
         labelf = tkfont.Font(family='Montserrat' ,size=12)
+        cbbox = tkfont.Font(family='Montserrat' ,size=9)
+        self.option_add("*TCombobox*Listbox*Font", cbbox)
         
         mainc = ttk.Frame(self)
         mainc.config(width = 600, height = 700)
