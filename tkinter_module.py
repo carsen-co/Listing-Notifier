@@ -34,9 +34,9 @@ class Interface(Tk):
         self.resizable(win_res[0], win_res[1])
         
         # dynamically change models based on the manufacturer selected
-        def change_models(model_field, selected_make):
-            model_field.destroy()
-
+        def change_models(selected_make):
+            
+            global model_field
             model_field = ttk.Combobox(mainc, width = 17) 
             model_field.grid(row=30,column=20)
 
@@ -57,24 +57,26 @@ class Interface(Tk):
 
         # retrieve inserted inputs
         def retrieve_inputs():
-            
-            search_input = []
-            search_input.append(make_field.get())
-            search_input.append(model_field.get())
-            search_input.append(price_field_from.get())
-            search_input.append(price_field_to.get())
-            search_input.append(reg_field_from.get())
-            search_input.append(reg_field_to.get())
-            search_input.append(mileage_field_from.get())
-            search_input.append(mileage_field_to.get())
 
-            threads = []
-            search_thread = th.Thread(target=search, args = (maindir, search_input))
-            search_thread.start()
-            threads = []
-            threads.append(search_thread)
-            threads_thread = th.Thread(target=search_thread, args = (threads[0],))
-            threads_thread.start()
+            try:
+                with open('makes.json') as dbjson:
+                    fields_input = json.load(dbjson)
+                    dbjson.close()
+            except FileNotFoundError:
+                fields_input = {}
+                fields_input['searches'] = []
+
+            search = {}
+            search['manufacturer'] = make_field.get()
+            search['model'] = model_field.get()
+            search['version'] = model_version_field.get()
+            search['price'] = str(price_field_from.get()) + " - " + str(price_field_to.get())
+            search['registration'] = str(reg_field_from.get()) + " - " + str(reg_field_to.get())
+            search['from miles'] = str(mileage_field_from.get()) + " - " + str(mileage_field_to.get())
+            fields_input['searches'].append(search)
+
+            with open('./resources/db.json', 'w') as dbjson:
+                json.dump(fields_input, dbjson)
 
 
         # ========== MAIN CONTENT
@@ -112,16 +114,13 @@ class Interface(Tk):
         # combobox drop down list 
         make_field['values'] = tuple(makes)
         make_field.current(0)
-        make_field.bind("<<ComboboxSelected>>", lambda _ : change_models(model_field, make_field.get()))
+        make_field.bind("<<ComboboxSelected>>", lambda _ : change_models(make_field.get()))
 
 
         # model
         model_version_txt = ttk.Label(mainc, text="Car model:")
         model_version_txt['font'] = labelf
         model_version_txt.grid(row=20,column=20,padx=(10,10), pady=(5,5), sticky = 'w')
-        
-        model_field = ttk.Entry(mainc)
-        model_field.grid(row=30,column=20)
 
 
         # model version
