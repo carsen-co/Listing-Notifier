@@ -85,9 +85,12 @@ class Interface(Tk):
         mainc.config(width = 600, height = 700)
         mainc.grid(row = 20, column = 0,sticky="new")
 
+
+        # title
         title = ttk.Label(mainc, text = "Index a new search")
         title.grid(row = 10, column = 10, columnspan = 40,padx=(10,10), pady=(5,5))
         title['font'] = title_font
+
 
         # manufacturer
         make_txt = ttk.Label(mainc, text="Car manufacturer:")
@@ -106,19 +109,28 @@ class Interface(Tk):
         makes = [mk['n'] for mk in makes_dict]
         makes.insert(0, 'Any')
 
-        # adding combobox drop down list 
+        # combobox drop down list 
         make_field['values'] = tuple(makes)
         make_field.current(0)
-
         make_field.bind("<<ComboboxSelected>>", lambda _ : change_models(model_field, make_field.get()))
 
+
         # model
-        model_txt = ttk.Label(mainc, text="Car model:")
-        model_txt['font'] = labelf
-        model_txt.grid(row=20,column=20,padx=(10,10), pady=(5,5), sticky = 'w')
+        model_version_txt = ttk.Label(mainc, text="Car model:")
+        model_version_txt['font'] = labelf
+        model_version_txt.grid(row=20,column=20,padx=(10,10), pady=(5,5), sticky = 'w')
         
         model_field = ttk.Entry(mainc)
         model_field.grid(row=30,column=20)
+
+
+        # model version
+        model_version_txt = ttk.Label(mainc, text="Model version:")
+        model_version_txt['font'] = labelf
+        model_version_txt.grid(row=20,column=40,padx=(10,10), pady=(5,5), sticky = 'w')
+        
+        model_version_field = ttk.Entry(mainc)
+        model_version_field.grid(row=30,column=40, pady=(5,10))
 
 
         # price
