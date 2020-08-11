@@ -34,7 +34,7 @@ class Interface(Tk):
         self.resizable(win_res[0], win_res[1])
         
         # dynamically change models based on the manufacturer selected
-        def change_models(model_field, make):
+        def change_models(model_field, selected_make):
             model_field.destroy()
 
             model_field = ttk.Combobox(mainc, width = 17) 
@@ -46,15 +46,13 @@ class Interface(Tk):
                 makes_dict = makes_dict['autoscout24_ch']
                 mjson.close()
 
-            makes = []
-            for i in range(len(makes_dict)):
-                if i == 0:
-                    makes.append("Any")
-                else:
-                    makes.append(makes_dict[i]['n'])
+            for make in makes_dict:
+                if make['n'] == selected_make:
+                    models = [md['m'] for md in make['models']]
+                    models.insert(0, 'Any')
 
             # adding combobox drop down list 
-            model_field['values'] = tuple(makes)
+            model_field['values'] = tuple(models)
             model_field.current(0)
 
         # retrieve inserted inputs
@@ -105,12 +103,8 @@ class Interface(Tk):
             makes_dict = makes_dict['autoscout24_ch']
             mjson.close()
 
-        makes = []
-        for i in range(len(makes_dict)):
-            if i == 0:
-                makes.append("Any")
-            else:
-                makes.append(makes_dict[i]['n'])
+        makes = [mk['n'] for mk in makes_dict]
+        makes.insert(0, 'Any')
 
         # adding combobox drop down list 
         make_field['values'] = tuple(makes)
