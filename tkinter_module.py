@@ -76,8 +76,9 @@ class Main(Frame):
         model_field.current(0)
 
     def __init__(self, master):
+
         Frame.__init__(self, master)
-        
+
         # retrieve inserted inputs
         def retrieve_inputs():
 
