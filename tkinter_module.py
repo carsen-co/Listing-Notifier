@@ -1,6 +1,7 @@
 
 import os
 import json
+import random
 import threading as th
 
 from tkinter import *
@@ -51,6 +52,10 @@ class Interface(Tk):
                 fields_input['searches'] = []
 
             search = {}
+            existing_ids = [item['id'] for item in fields_input['searches']]
+            search['id'] = random.randint(1111,9999)
+            while search['id'] in existing_ids:
+                search['id'] = random.randint(1111,9999)
             search['status'] = True
             search['manufacturer'] = make_field.get()
             try:
@@ -185,7 +190,7 @@ class Interface(Tk):
 
 
         # timer
-        timer_txt = ttk.Label(mainc, text="Timer (seconds):")
+        timer_txt = ttk.Label(mainc, text="Timer\n(seconds):")
         timer_txt['font'] = labelf
         timer_txt.grid(row=20,column=50,padx=(10,10), pady=(5,5), sticky = 'w')
 
@@ -207,21 +212,22 @@ class Interface(Tk):
 
 
         # ========== TREE CONTENT
+        global searches_tree
         # generate treeview
-        searches_tree = ttk.Treeview(mainc, height=5)
-        searches_tree["columns"]=("Model","Price","Registration","Mileage")
-        searches_tree.column("#0", width=100, minwidth=70,anchor=W)
-        searches_tree.column("#1", width=100, minwidth=60,anchor=CENTER)
-        searches_tree.column("#2", width=100, minwidth=40,anchor=CENTER)
-        searches_tree.column("#3", width=80, minwidth=70,anchor=CENTER)
-        searches_tree.column("#4", width=80, minwidth=45,anchor=CENTER)
-        
-        searches_tree.heading("#0", text="Manufacturer", anchor=CENTER)
-        searches_tree.heading("#1",text="Model", anchor=CENTER)
-        searches_tree.heading("#2", text="Price", anchor=CENTER)
+        searches_tree = ttk.Treeview(mainc, height=15)
+        searches_tree["columns"]=("Vehicle","Price","Registration","Mileage")
+        searches_tree.column("#0", width=60, minwidth=50,anchor=CENTER)
+        searches_tree.column("#1", width=150, minwidth=80,anchor=CENTER)
+        searches_tree.column("#2", width=120, minwidth=60,anchor=CENTER)
+        searches_tree.column("#3", width=100, minwidth=40,anchor=CENTER)
+        searches_tree.column("#4", width=100, minwidth=70,anchor=CENTER)
+
+        searches_tree.heading("#0", text="Status", anchor=CENTER)
+        searches_tree.heading("#1", text="Vehicle", anchor=CENTER)
+        searches_tree.heading("#2",text="Price", anchor=CENTER)
         searches_tree.heading("#3", text="Registration", anchor=CENTER)
         searches_tree.heading("#4", text="Mileage", anchor=CENTER)
-        
+
         searches_tree.grid(row=90,column=10,columnspan=40,padx=5)
 
         try:
@@ -229,7 +235,10 @@ class Interface(Tk):
                 fields_input = json.load(dbjson)
                 dbjson.close()
                 for item in fields_input['searches']:
-                    searches_tree.insert('', 'end', text=item['manufacturer'], values=(item['model'] + ' ' + item['version'], item['price'], item['registration'], item['mileage']))
-
+                    if item['status']:
+                        status = "Active"
+                    else:
+                        status = "Inactive"
+                    searches_tree.insert('', 'end', text=status, values=(item['manufacturer'] + ' ' + item['model'] + ' ' + item['version'], item['price'], item['registration'], item['mileage'], item['id']))
         except FileNotFoundError:
             pass
