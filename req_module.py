@@ -1,4 +1,5 @@
 
+import os
 import json
 import time
 import pyperclip
@@ -6,8 +7,14 @@ import pyautogui
 import webbrowser
 from bs4 import BeautifulSoup
 
+import smtplib, ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 _DBJSON = './resources/db.json'
 _MAKESJSON = './resources/makes.json'
+_SETTINGSJSON = './resources/settings.json'
+
 CHROME_PATH = r'C:\Users\markh\AppData\Local\Google\Chrome\Application\chrome.exe'
 BASE_URL = 'https://www.autoscout24.ch/de/autos/'
 
@@ -18,9 +25,17 @@ def search_thread():
         fields_input = json.load(dbjson)
         dbjson.close()
 
+    # check each item for updates and collect links
+    links = []
     for item in fields_input['searches']:
         url = generate_url(item)
-        response = req_fetch(url)
+        temp_urls = req_fetch(url)
+        for link in temp_urls:
+            links.append(link)
+
+    # send notification
+    if links:
+        send_mail(links)
 
 # generate url for parameters
 def generate_url(search_item) -> str:
@@ -78,7 +93,7 @@ def req_fetch(url : str):
     # generate webbrowser object
     webbrowser.register('chrome', None, webbrowser.GenericBrowser(CHROME_PATH))
     webbrowser.get('chrome').open(url, new=0, autoraise=True)
-    time.sleep(10)
+    time.sleep(6)
 
     # navigate using shortcuts and transfer clipboard markup to variable
     pyautogui.hotkey('ctrl', 'u')
@@ -93,13 +108,60 @@ def req_fetch(url : str):
     pyautogui.hotkey('ctrl', 'w')
     pyautogui.hotkey('ctrl', 'w')
 
+    # load json data
+    with open(_DBJSON) as dbjson:
+        fields_input = json.load(dbjson)
+        dbjson.close()
+
     # parse local variable markup
     soup = BeautifulSoup(markup, "html.parser")
 
+    # parse listings if any
     containers = soup.find_all('section')
-    for listing in containers[-1].find_all('article'):
-        link = listing.find('a')['href']
-        print('https://www.autoscout24.ch' + link)
+    links = ['https://www.autoscout24.ch' + listing.find('a')['href'] for listing in containers[-1].find_all('article')]
+    links = [link for link in links if link not in fields_input['ignored']]
+
+    # add to ignored
+    with open(_DBJSON, 'w') as dbjson:
+        for link in links:
+            fields_input['ignored'].append(link)
+        json.dump(fields_input, dbjson)
+        dbjson.close()
+
+    return links
+
+
+# send mail to the address specified in settings
+def send_mail(links):
+    
+    # read settings
+    with open(_SETTINGSJSON, mode='r') as st:
+        settings = st.read()
+        settings = (json.loads(settings))
+        settings = settings['settings']
+        st.close()
+
+    receiver = settings['receiver']
+    sender = settings['email']
+    password = settings['password']
+
+    # create message
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "New listings found"
+    message["From"] = "ListingNotifier"
+    message["To"] = receiver
+    
+    message_body = "New listings have been posted up following your indexed search parameters. Here are the links: "
+    for link in links:
+        message_body += "\n\n%s" % link
+    message.attach(MIMEText(message_body, "plain"))
+
+    # set up server and send message
+    port = 465
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+        server.login(sender, password)
+        server.sendmail(sender, receiver, message.as_string())
 
 # running tests
 if __name__ == '__main__':

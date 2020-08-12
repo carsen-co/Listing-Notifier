@@ -89,6 +89,7 @@ class Main(Frame):
             except FileNotFoundError:
                 fields_input = {}
                 fields_input['searches'] = []
+                fields_input['ignored'] = []
 
             search = {}
             existing_ids = [item['id'] for item in fields_input['searches']]
@@ -169,7 +170,7 @@ class Main(Frame):
 
 
         # price
-        price_txt = ttk.Label(mainc, text="Price range (EURO):")
+        price_txt = ttk.Label(mainc, text="Price range (CHF):")
         price_txt['font'] = labelf
         price_txt.grid(row=40,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
         # from
@@ -266,3 +267,11 @@ class Main(Frame):
                     searches_tree.insert('', 'end', text=status, values=(item['manufacturer'] + ' ' + item['model'] + ' ' + item['version'], item['price'], item['registration'], item['mileage'], item['id']))
         except FileNotFoundError:
             pass
+        except json.decoder.JSONDecodeError:
+            os.remove(_DBJSON)
+            with open(_DBJSON, 'w') as dbjson:
+                fields_input = {}
+                fields_input['searches'] = []
+                fields_input['ignored'] = []
+                json.dump(fields_input, dbjson)
+                dbjson.close()
