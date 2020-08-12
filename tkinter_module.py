@@ -14,6 +14,42 @@ _MAKESJSON = './resources/makes.json'
 _SETTINGSJSON = './resources/settings.json'
 
 class Interface(Tk):
+    
+    # refresh interface
+    def refresh(self):
+        self.destroy()
+        self.__init__()
+
+    def __init__(self):
+
+        # __init__ begin
+        super().__init__()
+        self.title("Listing Notifier")
+        #self.iconbitmap('./path')
+
+        # read and apply settings
+        with open(_SETTINGSJSON, mode='r') as st:
+            settings = st.read()
+            settings = (json.loads(settings))
+            settings = settings['settings']
+            st.close()
+
+        self.geometry(settings["window_geometry"])
+        win_res = settings["window_resizeability"].split(',')
+        self.resizable(win_res[0], win_res[1])
+        
+        self._frame = None
+        self.switch_frame(Main)
+            
+    def switch_frame(self, frame_class):
+        new_frame = frame_class(self)
+        if self._frame is not None:
+            self._frame.destroy()
+        self._frame = new_frame
+        self._frame.grid()
+
+
+class Main(Frame):
 
     # dynamically change models based on the manufacturer selected
     def change_models(self, mainc, selected_make):
@@ -37,9 +73,9 @@ class Interface(Tk):
         model_field['values'] = tuple(models)
         model_field.current(0)
 
-
-    def __init__(self):
-
+    def __init__(self, master):
+        Frame.__init__(self, master)
+        
         # retrieve inserted inputs
         def retrieve_inputs():
 
@@ -71,22 +107,7 @@ class Interface(Tk):
             with open(_DBJSON, 'w') as dbjson:
                 json.dump(fields_input, dbjson)
 
-
-        # __init__ begin
-        super().__init__()
-        self.title("Listing Notifier")
-        #self.iconbitmap('./path')
-
-        # read and apply settings
-        with open(_SETTINGSJSON, mode='r') as st:
-            settings = st.read()
-            settings = (json.loads(settings))
-            settings = settings['settings']
-            st.close()
-
-        self.geometry(settings["window_geometry"])
-        win_res = settings["window_resizeability"].split(',')
-        self.resizable(win_res[0], win_res[1])
+            master.switch_frame(Main)
 
 
         # ========== SEARCH CONTENT
