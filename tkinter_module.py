@@ -8,6 +8,8 @@ from tkinter import *
 import tkinter.ttk as ttk
 import tkinter.font as tkfont
 
+from req_module import search_thread
+
 MAINDIR = os.getcwd()
 _DBJSON = './resources/db.json'
 _MAKESJSON = './resources/makes.json'
