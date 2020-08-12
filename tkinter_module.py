@@ -51,6 +51,7 @@ class Interface(Tk):
                 fields_input['searches'] = []
 
             search = {}
+            search['status'] = True
             search['manufacturer'] = make_field.get()
             try:
                 search['model'] = model_field.get()
@@ -75,7 +76,7 @@ class Interface(Tk):
         with open(_SETTINGSJSON, mode='r') as st:
             settings = st.read()
             settings = (json.loads(settings))
-            settings = settings['settings'][0]
+            settings = settings['settings']
             st.close()
 
         self.geometry(settings["window_geometry"])
@@ -83,7 +84,7 @@ class Interface(Tk):
         self.resizable(win_res[0], win_res[1])
 
 
-        # ========== MAIN CONTENT
+        # ========== SEARCH CONTENT
         title_font = tkfont.Font(family='Montserrat' ,size=16, weight='bold')
         labelf = tkfont.Font(family='Montserrat' ,size=12)
         cbbox = tkfont.Font(family='Montserrat' ,size=9)
@@ -183,7 +184,52 @@ class Interface(Tk):
         reg_field_to.grid(row=60,column=40)
 
 
+        # timer
+        timer_txt = ttk.Label(mainc, text="Timer (seconds):")
+        timer_txt['font'] = labelf
+        timer_txt.grid(row=20,column=50,padx=(10,10), pady=(5,5), sticky = 'w')
+
+        with open(_SETTINGSJSON, mode='r') as st:
+            settings = st.read()
+            settings = (json.loads(settings))
+            timer = StringVar(mainc, value=settings['settings']['timer'])
+            timer = StringVar()
+            timer.set(settings['settings']['timer'])
+            st.close()
+        timer_field = ttk.Entry(mainc, textvariable=timer)
+        timer_field.grid(row=30,column=50)
+
+
         # search button
         search_button = Button(mainc, text="Index!",bg='#5e5e5e', fg='#eae8e8', command=retrieve_inputs)
         search_button.grid(row=80,column=10,columnspan=40,padx=(10, 10),pady=(10, 10))
         search_button['font'] = title_font
+
+
+        # ========== TREE CONTENT
+        # generate treeview
+        searches_tree = ttk.Treeview(mainc, height=5)
+        searches_tree["columns"]=("Model","Price","Registration","Mileage")
+        searches_tree.column("#0", width=100, minwidth=70,anchor=W)
+        searches_tree.column("#1", width=100, minwidth=60,anchor=CENTER)
+        searches_tree.column("#2", width=100, minwidth=40,anchor=CENTER)
+        searches_tree.column("#3", width=80, minwidth=70,anchor=CENTER)
+        searches_tree.column("#4", width=80, minwidth=45,anchor=CENTER)
+        
+        searches_tree.heading("#0", text="Manufacturer", anchor=CENTER)
+        searches_tree.heading("#1",text="Model", anchor=CENTER)
+        searches_tree.heading("#2", text="Price", anchor=CENTER)
+        searches_tree.heading("#3", text="Registration", anchor=CENTER)
+        searches_tree.heading("#4", text="Mileage", anchor=CENTER)
+        
+        searches_tree.grid(row=90,column=10,columnspan=40,padx=5)
+
+        try:
+            with open(_DBJSON) as dbjson:
+                fields_input = json.load(dbjson)
+                dbjson.close()
+                for item in fields_input['searches']:
+                    searches_tree.insert('', 'end', text=item['manufacturer'], values=(item['model'] + ' ' + item['version'], item['price'], item['registration'], item['mileage']))
+
+        except FileNotFoundError:
+            pass
