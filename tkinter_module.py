@@ -2,6 +2,7 @@
 import os
 import json
 import random
+import threading as th
 
 from tkinter import *
 import tkinter.ttk as ttk
@@ -246,8 +247,14 @@ class Main(Frame):
 
         # buttons
         # run button toggle
+        def run():
+            run_threader()
+            time.sleep(1)
+            thread = th.Thread(target=bar)
+            thread.start()
+
         run_toggle_icon = PhotoImage(file="./resources/icons/run_toggle.png").subsample(4,4)
-        run_toggle_button = Button(mainc, image = run_toggle_icon,compound = LEFT, bg='#fff', command=run_threader)
+        run_toggle_button = Button(mainc, image = run_toggle_icon,compound = LEFT, bg='#fff', command=run)
         run_toggle_button.image = run_toggle_icon
         run_toggle_button.grid(row=90, column=50)
         run_toggle_button.config(width=50, height=50)
@@ -345,3 +352,24 @@ class Main(Frame):
         set_receiver_button.image = set_receiver_icon
         set_receiver_button.grid(row=170, column=30)
         set_receiver_button.config(width=20, height=20)
+
+        # progressbar
+        def bar():
+            settings = load_settings()
+            bar_status = settings['running']
+
+            while bar_status:
+                settings = load_settings()
+                bar_status = settings['running']
+
+                for i in range(11):
+                    progressbar['value'] = i * 10
+                    self.update_idletasks()
+                    time.sleep(0.4)
+
+            progressbar['value'] = 0
+            self.update_idletasks()
+            time.sleep(0.4)
+
+        progressbar = ttk.Progressbar(mainc, orient=HORIZONTAL, length=100, mode='indeterminate')
+        progressbar.grid(row=180, column=10, columnspan=50)

@@ -55,8 +55,8 @@ def run_thread():
     running = settings['running']
 
     while running:
-        running = settings['running']
-
+        time.sleep(int(settings['timer']) / 2)
         search_thread()
-        time.sleep(int(settings['timer']))
+        time.sleep(int(settings['timer']) / 2)
         settings = load_settings()
+        running = settings['running']
