@@ -2,17 +2,15 @@
 import os
 import json
 import random
-import threading as th
 
 from tkinter import *
 import tkinter.ttk as ttk
 import tkinter.font as tkfont
 
-from req_module import search_thread
+from utils import *
 
 MAINDIR = os.getcwd()
 _DBJSON = './resources/db.json'
-_MAKESJSON = './resources/makes.json'
 _SETTINGSJSON = './resources/settings.json'
 
 class Interface(Tk):
@@ -29,13 +27,7 @@ class Interface(Tk):
         self.title("Listing Notifier")
         #self.iconbitmap('./path')
 
-        # read and apply settings
-        with open(_SETTINGSJSON, mode='r') as st:
-            settings = st.read()
-            settings = (json.loads(settings))
-            settings = settings['settings']
-            st.close()
-
+        settings = load_settings()
         self.geometry(settings["window_geometry"])
         win_res = settings["window_resizeability"].split(',')
         self.resizable(win_res[0], win_res[1])
@@ -60,11 +52,7 @@ class Main(Frame):
         model_field = ttk.Combobox(mainc, width = 17) 
         model_field.grid(row=30,column=20)
 
-        with open(_MAKESJSON, 'r', encoding="utf-8", newline='') as mjson:
-            data = mjson.read()
-            makes_dict = (json.loads(data))
-            makes_dict = makes_dict['autoscout24_ch']
-            mjson.close()
+        makes_dict = load_makes()
 
         for make in makes_dict:
             if make['n'] == selected_make:
@@ -83,9 +71,7 @@ class Main(Frame):
         def retrieve_inputs():
 
             try:
-                with open(_DBJSON) as dbjson:
-                    fields_input = json.load(dbjson)
-                    dbjson.close()
+                fields_input = load_database()
             except FileNotFoundError:
                 fields_input = {}
                 fields_input['searches'] = []
@@ -139,11 +125,7 @@ class Main(Frame):
         make_field = ttk.Combobox(mainc, width = 17) 
         make_field.grid(row=30,column=10)
 
-        with open(_MAKESJSON, 'r', encoding="utf-8", newline='') as mjson:
-            data = mjson.read()
-            makes_dict = (json.loads(data))
-            makes_dict = makes_dict['autoscout24_ch']
-            mjson.close()
+        makes_dict = load_makes()
 
         makes = [mk['n'] for mk in makes_dict]
         makes.insert(0, 'Any')
@@ -217,17 +199,14 @@ class Main(Frame):
         # timer
         timer_txt = ttk.Label(mainc, text="Timer\n(seconds):")
         timer_txt['font'] = labelf
-        timer_txt.grid(row=20,column=50,padx=(10,10), pady=(5,5), sticky = 'w')
+        timer_txt.grid(row=10,column=50,padx=(10,10), pady=(5,5), sticky = 'w')
 
-        with open(_SETTINGSJSON, mode='r') as st:
-            settings = st.read()
-            settings = (json.loads(settings))
-            timer = StringVar(mainc, value=settings['settings']['timer'])
-            timer = StringVar()
-            timer.set(settings['settings']['timer'])
-            st.close()
+        settings = load_settings()
+        timer = StringVar(mainc, value=settings['timer'])
+        timer = StringVar()
+        timer.set(settings['timer'])
         timer_field = ttk.Entry(mainc, textvariable=timer)
-        timer_field.grid(row=30,column=50)
+        timer_field.grid(row=20,column=50)
 
 
         # search button
@@ -240,31 +219,27 @@ class Main(Frame):
         global searches_tree
         # generate treeview
         searches_tree = ttk.Treeview(mainc, height=15)
-        searches_tree["columns"]=("Vehicle","Price","Registration","Mileage")
+        searches_tree["columns"]=("Vehicle","Price","Registration")
         searches_tree.column("#0", width=60, minwidth=50,anchor=CENTER)
         searches_tree.column("#1", width=150, minwidth=80,anchor=CENTER)
         searches_tree.column("#2", width=120, minwidth=60,anchor=CENTER)
         searches_tree.column("#3", width=100, minwidth=40,anchor=CENTER)
-        searches_tree.column("#4", width=100, minwidth=70,anchor=CENTER)
 
         searches_tree.heading("#0", text="Status", anchor=CENTER)
         searches_tree.heading("#1", text="Vehicle", anchor=CENTER)
         searches_tree.heading("#2",text="Price", anchor=CENTER)
         searches_tree.heading("#3", text="Registration", anchor=CENTER)
-        searches_tree.heading("#4", text="Mileage", anchor=CENTER)
 
         searches_tree.grid(row=90,column=10,columnspan=40,padx=5)
 
         try:
-            with open(_DBJSON) as dbjson:
-                fields_input = json.load(dbjson)
-                dbjson.close()
-                for item in fields_input['searches']:
-                    if item['status']:
-                        status = "Active"
-                    else:
-                        status = "Inactive"
-                    searches_tree.insert('', 'end', text=status, values=(item['manufacturer'] + ' ' + item['model'] + ' ' + item['version'], item['price'], item['registration'], item['mileage'], item['id']))
+            fields_input = load_database()
+            for item in fields_input['searches']:
+                if item['status']:
+                    status = "Active"
+                else:
+                    status = "Inactive"
+                searches_tree.insert('', 'end', text=status, values=(item['manufacturer'] + ' ' + item['model'] + ' ' + item['version'], item['price'], item['registration'], item['id']))
         except FileNotFoundError:
             pass
         except json.decoder.JSONDecodeError:
@@ -275,3 +250,10 @@ class Main(Frame):
                 fields_input['ignored'] = []
                 json.dump(fields_input, dbjson)
                 dbjson.close()
+
+        # buttons
+        run_toggle_icon = PhotoImage(file="./resources/icons/play.png").subsample(6,6)
+        run_toggle_button = Button(mainc, image = run_toggle_icon,compound = LEFT, bg='#fff', command=run_threader)
+        run_toggle_button.image = run_toggle_icon
+        run_toggle_button.grid(row=30, column=50, rowspan=20)
+        run_toggle_button.config(width=50, height=50)

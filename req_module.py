@@ -7,13 +7,13 @@ import pyautogui
 import webbrowser
 from bs4 import BeautifulSoup
 
+import utils
+
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 _DBJSON = './resources/db.json'
-_MAKESJSON = './resources/makes.json'
-_SETTINGSJSON = './resources/settings.json'
 
 CHROME_PATH = r'C:\Users\markh\AppData\Local\Google\Chrome\Application\chrome.exe'
 BASE_URL = 'https://www.autoscout24.ch/de/autos/'
@@ -21,9 +21,7 @@ BASE_URL = 'https://www.autoscout24.ch/de/autos/'
 # main search thread
 def search_thread():
 
-    with open(_DBJSON) as dbjson:
-        fields_input = json.load(dbjson)
-        dbjson.close()
+    fields_input = utils.load_database()
 
     # check each item for updates and collect links
     links = []
@@ -41,11 +39,7 @@ def search_thread():
 def generate_url(search_item) -> str:
 
     # read makes file
-    with open(_MAKESJSON, 'r', encoding="utf-8", newline='') as mjson:
-        data = mjson.read()
-        makes_dict = (json.loads(data))
-        makes_dict = makes_dict['autoscout24_ch']
-        mjson.close()
+    makes_dict = utils.load_makes()
 
     url_param = ''
 
@@ -88,6 +82,7 @@ def generate_url(search_item) -> str:
 
     return BASE_URL + url_param
 
+# fetch the url for the listings
 def req_fetch(url : str):
 
     # generate webbrowser object
@@ -109,9 +104,7 @@ def req_fetch(url : str):
     pyautogui.hotkey('ctrl', 'w')
 
     # load json data
-    with open(_DBJSON) as dbjson:
-        fields_input = json.load(dbjson)
-        dbjson.close()
+    fields_input = utils.load_database()
 
     # parse local variable markup
     soup = BeautifulSoup(markup, "html.parser")
@@ -130,16 +123,11 @@ def req_fetch(url : str):
 
     return links
 
-
 # send mail to the address specified in settings
 def send_mail(links):
     
     # read settings
-    with open(_SETTINGSJSON, mode='r') as st:
-        settings = st.read()
-        settings = (json.loads(settings))
-        settings = settings['settings']
-        st.close()
+    settings = utils.load_settings()
 
     receiver = settings['receiver']
     sender = settings['email']
