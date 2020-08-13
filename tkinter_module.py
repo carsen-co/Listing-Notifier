@@ -320,3 +320,28 @@ class Main(Frame):
         set_timer_button.image = set_timer_icon
         set_timer_button.grid(row=160, column=30)
         set_timer_button.config(width=20, height=20)
+
+
+        # receiver
+        receiver_txt = ttk.Label(mainc, text="Receiver (email):")
+        receiver_txt['font'] = labelf
+        receiver_txt.grid(row=170,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
+
+        settings = load_settings()
+        receiver_field = ttk.Entry(mainc)
+        receiver_field.grid(row=170,column=20)
+        receiver_field.insert(0, settings['receiver'])
+
+        # set receiver button
+        def set_receiver():
+            settings = load_settings()
+            with open(_SETTINGSJSON, 'w') as setjson:
+                settings['receiver'] = receiver_field.get()
+                json.dump(settings, setjson)
+                setjson.close()
+
+        set_receiver_icon = PhotoImage(file="./resources/icons/set.png").subsample(40,40)
+        set_receiver_button = Button(mainc, image = set_receiver_icon,compound = LEFT, bg='#fff', command=set_receiver)
+        set_receiver_button.image = set_receiver_icon
+        set_receiver_button.grid(row=170, column=30)
+        set_receiver_button.config(width=20, height=20)

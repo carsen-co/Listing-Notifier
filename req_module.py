@@ -15,7 +15,8 @@ from email.mime.multipart import MIMEMultipart
 
 _DBJSON = './resources/db.json'
 
-CHROME_PATH = r'C:\Users\markh\AppData\Local\Google\Chrome\Application\chrome.exe'
+with open('./resources/chrome_path.txt', 'r') as cp:
+    CHROME_PATH = r'%s' % cp.read()
 BASE_URL = 'https://www.autoscout24.ch/de/autos/'
 
 # main search thread
@@ -26,10 +27,11 @@ def search_thread():
     # check each item for updates and collect links
     links = []
     for item in fields_input['searches']:
-        url = generate_url(item)
-        temp_urls = req_fetch(url)
-        for link in temp_urls:
-            links.append(link)
+        if item['status']:
+            url = generate_url(item)
+            temp_urls = req_fetch(url)
+            for link in temp_urls:
+                links.append(link)
 
     # send notification
     if links:
@@ -150,8 +152,3 @@ def send_mail(links):
     with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
         server.login(sender, password)
         server.sendmail(sender, receiver, message.as_string())
-
-# running tests
-if __name__ == '__main__':
-
-    search_thread()
