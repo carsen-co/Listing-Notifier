@@ -32,7 +32,6 @@ def load_database():
 
 # run toggle functions
 def run_threader():
-    print("CHECK - run_threader")
     settings = load_settings()
 
     running = settings['running']
@@ -54,10 +53,8 @@ def run_threader():
 def run_thread():
     settings = load_settings()
     running = settings['running']
-    print("CHECK - run_thread")
 
     while running:
-        print("CHECK - running - ", running)
         running = settings['running']
 
         search_thread()

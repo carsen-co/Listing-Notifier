@@ -25,7 +25,7 @@ class Interface(Tk):
         # __init__ begin
         super().__init__()
         self.title("Listing Notifier")
-        #self.iconbitmap('./path')
+        self.iconbitmap('./resources/icons/logo.ico')
 
         settings = load_settings()
         self.geometry(settings["window_geometry"])
@@ -34,7 +34,15 @@ class Interface(Tk):
         
         self._frame = None
         self.switch_frame(Main)
-            
+        
+        # style map treeview fix
+        def fixed_map(option):
+            return [elm for elm in style.map("Treeview", query_opt=option)
+                    if elm[:2] != ("!disabled", "!selected")]
+
+        style = ttk.Style()
+        style.map('Treeview', foreground=fixed_map('foreground'), background=fixed_map('background'))
+
     def switch_frame(self, frame_class):
         new_frame = frame_class(self)
         if self._frame is not None:
@@ -55,11 +63,11 @@ class Main(Frame):
         makes_dict = load_makes()
 
         for make in makes_dict:
-            if make['n'] == selected_make:
-                models = [md['m'] for md in make['models']]
-                models.insert(0, 'Any')
+            if make['n'] == selected_make.lower():
+                models = [md['m'].upper() for md in make['models']]
+                models.insert(0, 'ANY')
 
-        # adding combobox drop down list 
+        # adding combobox drop down list
         model_field['values'] = tuple(models)
         model_field.current(0)
 
@@ -127,8 +135,8 @@ class Main(Frame):
 
         makes_dict = load_makes()
 
-        makes = [mk['n'] for mk in makes_dict]
-        makes.insert(0, 'Any')
+        makes = [mk['n'].upper() for mk in makes_dict]
+        makes.insert(0, 'ANY')
 
         # combobox drop down list 
         make_field['values'] = tuple(makes)
@@ -195,20 +203,6 @@ class Main(Frame):
         reg_field_to = ttk.Entry(mainc)
         reg_field_to.grid(row=60,column=40)
 
-
-        # timer
-        timer_txt = ttk.Label(mainc, text="Timer\n(seconds):")
-        timer_txt['font'] = labelf
-        timer_txt.grid(row=10,column=50,padx=(10,10), pady=(5,5), sticky = 'w')
-
-        settings = load_settings()
-        timer = StringVar(mainc, value=settings['timer'])
-        timer = StringVar()
-        timer.set(settings['timer'])
-        timer_field = ttk.Entry(mainc, textvariable=timer)
-        timer_field.grid(row=20,column=50)
-
-
         # search button
         search_button = Button(mainc, text="Index!",bg='#5e5e5e', fg='#eae8e8', command=retrieve_inputs)
         search_button.grid(row=80,column=10,columnspan=40,padx=(10, 10),pady=(10, 10))
@@ -219,27 +213,26 @@ class Main(Frame):
         global searches_tree
         # generate treeview
         searches_tree = ttk.Treeview(mainc, height=15)
-        searches_tree["columns"]=("Vehicle","Price","Registration")
-        searches_tree.column("#0", width=60, minwidth=50,anchor=CENTER)
-        searches_tree.column("#1", width=150, minwidth=80,anchor=CENTER)
-        searches_tree.column("#2", width=120, minwidth=60,anchor=CENTER)
-        searches_tree.column("#3", width=100, minwidth=40,anchor=CENTER)
+        searches_tree["columns"]=("Price","Registration")
+        searches_tree.column("#0", width=190, minwidth=50,anchor=CENTER)
+        searches_tree.column("#1", width=140, minwidth=80,anchor=CENTER)
+        searches_tree.column("#2", width=140, minwidth=60,anchor=CENTER)
 
-        searches_tree.heading("#0", text="Status", anchor=CENTER)
-        searches_tree.heading("#1", text="Vehicle", anchor=CENTER)
-        searches_tree.heading("#2",text="Price", anchor=CENTER)
-        searches_tree.heading("#3", text="Registration", anchor=CENTER)
+        searches_tree.heading("#0", text="Vehicle", anchor=CENTER)
+        searches_tree.heading("#1", text="Price", anchor=CENTER)
+        searches_tree.heading("#2",text="Registration", anchor=CENTER)
 
-        searches_tree.grid(row=90,column=10,columnspan=40,padx=5)
+        searches_tree.grid(row=90,column=10,columnspan=40,rowspan=60,padx=5)
 
         try:
             fields_input = load_database()
             for item in fields_input['searches']:
                 if item['status']:
-                    status = "Active"
+                    searches_tree.tag_configure('gcolor', background='#caffbf')
+                    searches_tree.insert('', 'end', item['id'], text=item['manufacturer'] + ' ' + item['model'] + ' ' + item['version'], tag='gcolor', values=(item['price'], item['registration'], item['mileage']))
                 else:
-                    status = "Inactive"
-                searches_tree.insert('', 'end', text=status, values=(item['manufacturer'] + ' ' + item['model'] + ' ' + item['version'], item['price'], item['registration'], item['id']))
+                    searches_tree.tag_configure('rcolor', background='#ffadad')
+                    searches_tree.insert('', 'end', item['id'], text=item['manufacturer'] + ' ' + item['model'] + ' ' + item['version'], tag='rcolor', values=(item['price'], item['registration'], item['mileage']))
         except FileNotFoundError:
             pass
         except json.decoder.JSONDecodeError:
@@ -252,8 +245,78 @@ class Main(Frame):
                 dbjson.close()
 
         # buttons
-        run_toggle_icon = PhotoImage(file="./resources/icons/play.png").subsample(6,6)
+        # run button toggle
+        run_toggle_icon = PhotoImage(file="./resources/icons/run_toggle.png").subsample(4,4)
         run_toggle_button = Button(mainc, image = run_toggle_icon,compound = LEFT, bg='#fff', command=run_threader)
         run_toggle_button.image = run_toggle_icon
-        run_toggle_button.grid(row=30, column=50, rowspan=20)
+        run_toggle_button.grid(row=90, column=50)
         run_toggle_button.config(width=50, height=50)
+
+        # activator button
+        def activator():
+            selected_items = list(searches_tree.selection())
+            if selected_items:
+                for item in selected_items:
+                    fields_input = load_database()
+                    for i, listing in enumerate(fields_input['searches']):
+                        if int(item) == int(listing['id']):
+                            if listing['status']:
+                                listing['status'] = False
+                            else:
+                                listing['status'] = True
+
+                with open(_DBJSON, 'w') as dbjson:
+                    json.dump(fields_input, dbjson)
+                    dbjson.close()
+                master.switch_frame(Main)
+
+        activator_toggle_icon = PhotoImage(file="./resources/icons/activator.png").subsample(4,4)
+        activator_toggle_button = Button(mainc, image = activator_toggle_icon,compound = LEFT, bg='#fff', command=activator)
+        activator_toggle_button.image = activator_toggle_icon
+        activator_toggle_button.grid(row=100, column=50)
+        activator_toggle_button.config(width=50, height=50)
+
+        # remove button
+        def remove():
+            selected_items = list(searches_tree.selection())
+            if selected_items:
+                for item in selected_items:
+                    fields_input = load_database()
+                    for listing in fields_input['searches']:
+                        if int(item) == int(listing['id']):
+                            fields_input['searches'].remove(listing)
+
+                with open(_DBJSON, 'w') as dbjson:
+                    json.dump(fields_input, dbjson)
+                    dbjson.close()
+                master.switch_frame(Main)
+
+        remove_icon = PhotoImage(file="./resources/icons/trash.png").subsample(11,11)
+        remove_button = Button(mainc, image = remove_icon,compound = LEFT, bg='#fff', command=remove)
+        remove_button.image = remove_icon
+        remove_button.grid(row=140, column=50)
+        remove_button.config(width=50, height=50)
+
+        # timer
+        timer_txt = ttk.Label(mainc, text="Timer (seconds):")
+        timer_txt['font'] = labelf
+        timer_txt.grid(row=160,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
+
+        settings = load_settings()
+        timer_field = ttk.Entry(mainc)
+        timer_field.grid(row=160,column=20)
+        timer_field.insert(0, settings['timer'])
+
+        # set timer button
+        def set_timer():
+            settings = load_settings()
+            with open(_SETTINGSJSON, 'w') as setjson:
+                settings['timer'] = timer_field.get()
+                json.dump(settings, setjson)
+                setjson.close()
+
+        set_timer_icon = PhotoImage(file="./resources/icons/set.png").subsample(40,40)
+        set_timer_button = Button(mainc, image = set_timer_icon,compound = LEFT, bg='#fff', command=set_timer)
+        set_timer_button.image = set_timer_icon
+        set_timer_button.grid(row=160, column=30)
+        set_timer_button.config(width=20, height=20)

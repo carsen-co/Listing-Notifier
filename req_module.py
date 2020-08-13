@@ -45,11 +45,11 @@ def generate_url(search_item) -> str:
 
     # get make and model id
     for make in makes_dict:
-        if make['n'] == search_item['manufacturer']:
+        if make['n'] == search_item['manufacturer'].lower():
             make_id = make['i']
             url_param = make['n'] + '?make=' + make_id
             for model in make['models']:
-                if model['m'] == search_item['model']:
+                if model['m'] == search_item['model'].lower():
                     model_id = model['v']
                     url_param = make['n'] + '--' + model['m'] + '?make=' + make_id + '&model=' + model_id
 
@@ -88,7 +88,7 @@ def req_fetch(url : str):
     # generate webbrowser object
     webbrowser.register('chrome', None, webbrowser.GenericBrowser(CHROME_PATH))
     webbrowser.get('chrome').open(url, new=0, autoraise=True)
-    time.sleep(6)
+    time.sleep(4)
 
     # navigate using shortcuts and transfer clipboard markup to variable
     pyautogui.hotkey('ctrl', 'u')
