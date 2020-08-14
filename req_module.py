@@ -17,7 +17,8 @@ _DBJSON = './resources/db.json'
 
 with open('./resources/chrome_path.txt', 'r') as cp:
     CHROME_PATH = r'%s' % cp.read()
-BASE_URL = 'https://www.autoscout24.ch/de/autos/'
+AUTOSCOUT_URL = 'https://www.autoscout24.ch/de/autos/'
+ANIBIS_URL = 'https://www.anibis.ch/fr/c/automobiles-voitures-de-tourisme'
 
 # main search thread
 def search_thread():
@@ -28,7 +29,7 @@ def search_thread():
     links = []
     for item in fields_input['searches']:
         if item['status']:
-            url = generate_url(item)
+            url = autoscout_generate_url(item)
             temp_urls = req_fetch(url)
             for link in temp_urls:
                 links.append(link)
@@ -37,8 +38,8 @@ def search_thread():
     if links:
         send_mail(links)
 
-# generate url for parameters
-def generate_url(search_item) -> str:
+# generate autoscout url for parameters
+def autoscout_generate_url(search_item) -> str:
 
     # read makes file
     makes_dict = utils.load_makes()
@@ -82,7 +83,28 @@ def generate_url(search_item) -> str:
 
     url_param += '&vehtyp=10'
 
-    return BASE_URL + url_param
+    return AUTOSCOUT_URL + url_param
+
+# generate anibis url for parameters
+def anibis_generate_url(search_item) -> str:
+
+    # read makes file
+    makes_dict = utils.load_makes()
+
+    url_param = ''
+
+    # get make and model id
+    for make in makes_dict:
+        if make['n'] == search_item['manufacturer'].lower():
+            make_id = make['i']
+            url_param = make['n'] + '?make=' + make_id
+            for model in make['models']:
+                if model['m'] == search_item['model'].lower():
+                    model_id = model['v']
+                    url_param = make['n'] + '--' + model['m'] + '?make=' + make_id + '&model=' + model_id
+
+
+    return ANIBIS_URL + url_param
 
 # fetch the url for the listings
 def req_fetch(url : str):
@@ -112,9 +134,10 @@ def req_fetch(url : str):
     soup = BeautifulSoup(markup, "html.parser")
 
     # parse listings if any
-    containers = soup.find_all('section')
-    links = ['https://www.autoscout24.ch' + listing.find('a')['href'] for listing in containers[-1].find_all('article')]
-    links = [link for link in links if link not in fields_input['ignored']]
+    if 'autoscout24' in url:
+        containers = soup.find_all('section')
+        links = ['https://www.autoscout24.ch' + listing.find('a')['href'] for listing in containers[-1].find_all('article')]
+        links = [link for link in links if link not in fields_input['ignored']]
 
     # add to ignored
     with open(_DBJSON, 'w') as dbjson:
