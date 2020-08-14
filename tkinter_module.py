@@ -263,8 +263,8 @@ class Main(Frame):
         def activator():
             selected_items = list(searches_tree.selection())
             if selected_items:
+                fields_input = load_database()
                 for item in selected_items:
-                    fields_input = load_database()
                     for i, listing in enumerate(fields_input['searches']):
                         if int(item) == int(listing['id']):
                             if listing['status']:
@@ -287,8 +287,8 @@ class Main(Frame):
         def remove():
             selected_items = list(searches_tree.selection())
             if selected_items:
+                fields_input = load_database()
                 for item in selected_items:
-                    fields_input = load_database()
                     for listing in fields_input['searches']:
                         if int(item) == int(listing['id']):
                             fields_input['searches'].remove(listing)
