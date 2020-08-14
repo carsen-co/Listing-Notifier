@@ -314,19 +314,20 @@ class Main(Frame):
         timer_field.grid(row=160,column=20)
         timer_field.insert(0, settings['timer'])
 
-        # set timer button
-        def set_timer():
+        # confirm settings button
+        def confirm_settings():
             settings = load_settings()
             with open(_SETTINGSJSON, 'w') as setjson:
                 settings['timer'] = timer_field.get()
+                settings['receiver'] = receiver_field.get()
                 json.dump(settings, setjson)
                 setjson.close()
 
-        set_timer_icon = PhotoImage(file="./resources/icons/set.png").subsample(40,40)
-        set_timer_button = Button(mainc, image = set_timer_icon,compound = LEFT, bg='#fff', command=set_timer)
+        set_timer_icon = PhotoImage(file="./resources/icons/set.png").subsample(25,25)
+        set_timer_button = Button(mainc, image = set_timer_icon,compound = LEFT, bg='#fff', command=confirm_settings)
         set_timer_button.image = set_timer_icon
-        set_timer_button.grid(row=160, column=30)
-        set_timer_button.config(width=20, height=20)
+        set_timer_button.grid(row=160, column=30, rowspan=20, padx=(15,1))
+        set_timer_button.config(width=40, height=40)
 
 
         # receiver
@@ -338,20 +339,6 @@ class Main(Frame):
         receiver_field = ttk.Entry(mainc)
         receiver_field.grid(row=170,column=20)
         receiver_field.insert(0, settings['receiver'])
-
-        # set receiver button
-        def set_receiver():
-            settings = load_settings()
-            with open(_SETTINGSJSON, 'w') as setjson:
-                settings['receiver'] = receiver_field.get()
-                json.dump(settings, setjson)
-                setjson.close()
-
-        set_receiver_icon = PhotoImage(file="./resources/icons/set.png").subsample(40,40)
-        set_receiver_button = Button(mainc, image = set_receiver_icon,compound = LEFT, bg='#fff', command=set_receiver)
-        set_receiver_button.image = set_receiver_icon
-        set_receiver_button.grid(row=170, column=30)
-        set_receiver_button.config(width=20, height=20)
 
         # progressbar
         def bar():
@@ -372,4 +359,4 @@ class Main(Frame):
             time.sleep(0.4)
 
         progressbar = ttk.Progressbar(mainc, orient=HORIZONTAL, length=100, mode='indeterminate')
-        progressbar.grid(row=180, column=10, columnspan=50)
+        progressbar.grid(row=160, column=40, rowspan=20)
