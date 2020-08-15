@@ -34,6 +34,11 @@ def search_thread():
             for link in temp_urls:
                 links.append(link)
 
+            url = anibis_generate_url(item)
+            temp_urls = req_fetch(url)
+            for link in temp_urls:
+                links.append(link)
+
     # send notification
     if links:
         send_mail(links)
@@ -42,7 +47,7 @@ def search_thread():
 def autoscout_generate_url(search_item) -> str:
 
     # read makes file
-    makes_dict = utils.load_makes()
+    makes_dict = utils.load_makes('autoscout24_ch')
 
     url_param = ''
 
@@ -89,7 +94,7 @@ def autoscout_generate_url(search_item) -> str:
 def anibis_generate_url(search_item) -> str:
 
     # read makes file
-    makes_dict = utils.load_makes()
+    makes_dict = utils.load_makes('anibis_ch')
 
     url_param = ''
 
@@ -97,12 +102,50 @@ def anibis_generate_url(search_item) -> str:
     for make in makes_dict:
         if make['n'] == search_item['manufacturer'].lower():
             make_id = make['i']
-            url_param = make['n'] + '?make=' + make_id
-            for model in make['models']:
-                if model['m'] == search_item['model'].lower():
-                    model_id = model['v']
-                    url_param = make['n'] + '--' + model['m'] + '?make=' + make_id + '&model=' + model_id
+            url_param = make['n'] + '?aidl=' + make_id
 
+    # price
+    price = search_item['price'].split(' - ')
+    if price[0] != '':
+        url_param += '&aral=834_' + price[0]
+    else:
+        url_param += '&aral=834_0'
+    if price[1] != '':
+        url_param += '_' + price[1]
+    else:
+        url_param += '_0'
+
+    # mileage
+    mileage = search_item['mileage'].split(' - ')
+    if mileage[0] != '':
+        url_param += '%2C832_' + mileage[0]
+    else:
+        url_param += '%2C832_0'
+    if mileage[1] != '':
+        url_param += '_' + mileage[1]
+    else:
+        url_param += '_0'
+
+    # registration
+    reg = search_item['registration'].split(' - ')
+    if reg[0] != '':
+        url_param += '%2C833_' + reg[0]
+    else:
+        url_param += '%2C833_0'
+    if reg[1] != '':
+        url_param += '_' + reg[1]
+    else:
+        url_param += '_'
+
+    # model
+    if search_item['model']:
+        url_param += '%25' + search_item['model']
+
+    # add model version
+    if search_item['version'] != '':
+        url_param += '%20' + search_item['version']
+    
+    url_param += '%25'
 
     return ANIBIS_URL + url_param
 
@@ -138,6 +181,8 @@ def req_fetch(url : str):
         containers = soup.find_all('section')
         links = ['https://www.autoscout24.ch' + listing.find('a')['href'] for listing in containers[-1].find_all('article')]
         links = [link for link in links if link not in fields_input['ignored']]
+    elif 'anibis' in url:
+        print('WIP')
 
     # add to ignored
     with open(_DBJSON, 'w') as dbjson:

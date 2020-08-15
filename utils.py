@@ -16,11 +16,11 @@ def load_settings():
         st.close()
     return settings
     
-def load_makes():
+def load_makes(site):
     with open(_MAKESJSON, 'r', encoding="utf-8", newline='') as mjson:
         data = mjson.read()
         makes_dict = (json.loads(data))
-        makes_dict = makes_dict['autoscout24_ch']
+        makes_dict = makes_dict[site]
         mjson.close()
     return makes_dict
 

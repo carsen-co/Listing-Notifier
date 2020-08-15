@@ -61,7 +61,7 @@ class Main(Frame):
         model_field = ttk.Combobox(mainc, width = 17) 
         model_field.grid(row=30,column=20)
 
-        makes_dict = load_makes()
+        makes_dict = load_makes('autoscout24_ch')
 
         for make in makes_dict:
             if make['n'] == selected_make.lower():
@@ -134,7 +134,7 @@ class Main(Frame):
         make_field = ttk.Combobox(mainc, width = 17) 
         make_field.grid(row=30,column=10)
 
-        makes_dict = load_makes()
+        makes_dict = load_makes('autoscout24_ch')
 
         makes = [mk['n'].upper() for mk in makes_dict]
         makes.insert(0, 'ANY')
