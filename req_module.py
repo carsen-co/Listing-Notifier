@@ -2,6 +2,7 @@
 import os
 import json
 import time
+import requests
 import pyperclip
 import pyautogui
 import webbrowser
@@ -15,8 +16,11 @@ from email.mime.multipart import MIMEMultipart
 
 _DBJSON = './resources/db.json'
 
+HEADERS = {"User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebkit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'}
+
 with open('./resources/chrome_path.txt', 'r') as cp:
     CHROME_PATH = r'%s' % cp.read()
+
 AUTOSCOUT_URL = 'https://www.autoscout24.ch/de/autos/'
 ANIBIS_URL = 'https://www.anibis.ch/fr/c/automobiles-voitures-de-tourisme'
 
@@ -102,40 +106,45 @@ def anibis_generate_url(search_item) -> str:
     for make in makes_dict:
         if make['n'] == search_item['manufacturer'].lower():
             make_id = make['i']
-            url_param = make['n'] + '?aidl=' + make_id
+            url_param = '?aidl=' + make_id
 
     # price
-    price = search_item['price'].split(' - ')
-    if price[0] != '':
-        url_param += '&aral=834_' + price[0]
-    else:
-        url_param += '&aral=834_0'
-    if price[1] != '':
-        url_param += '_' + price[1]
-    else:
-        url_param += '_0'
+    if search_item['price'] != ' - ':
+        price = search_item['price'].split(' - ')
+        if price[0] != '':
+            url_param += '&aral=834_' + price[0]
+        else:
+            url_param += '&aral=834_0'
+        if price[1] != '':
+            url_param += '_' + price[1]
+        else:
+            url_param += '_0'
 
     # mileage
-    mileage = search_item['mileage'].split(' - ')
-    if mileage[0] != '':
-        url_param += '%2C832_' + mileage[0]
-    else:
-        url_param += '%2C832_0'
-    if mileage[1] != '':
-        url_param += '_' + mileage[1]
-    else:
-        url_param += '_0'
+    if search_item['mileage'] != ' - ':
+        mileage = search_item['mileage'].split(' - ')
+        if mileage[0] != '':
+            url_param += '%2C832_' + mileage[0]
+        else:
+            url_param += '%2C832_0'
+        if mileage[1] != '':
+            url_param += '_' + mileage[1]
+        else:
+            url_param += '_0'
 
     # registration
-    reg = search_item['registration'].split(' - ')
-    if reg[0] != '':
-        url_param += '%2C833_' + reg[0]
-    else:
-        url_param += '%2C833_0'
-    if reg[1] != '':
-        url_param += '_' + reg[1]
-    else:
-        url_param += '_'
+    if search_item['registration'] != ' - ':
+        reg = search_item['registration'].split(' - ')
+        if reg[0] != '':
+            url_param += '%2C833_' + reg[0]
+        else:
+            url_param += '%2C833_0'
+        if reg[1] != '':
+            url_param += '_' + reg[1]
+        else:
+            url_param += '_'
+
+    url_param += '&atxl=13358_'
 
     # model
     if search_item['model']:
@@ -151,38 +160,47 @@ def anibis_generate_url(search_item) -> str:
 
 # fetch the url for the listings
 def req_fetch(url : str):
-
-    # generate webbrowser object
-    webbrowser.register('chrome', None, webbrowser.GenericBrowser(CHROME_PATH))
-    webbrowser.get('chrome').open(url, new=0, autoraise=True)
-    time.sleep(4)
-
-    # navigate using shortcuts and transfer clipboard markup to variable
-    pyautogui.hotkey('ctrl', 'u')
-    time.sleep(2)
-    pyautogui.hotkey('ctrl', 'a')
-    time.sleep(2)
-    pyautogui.hotkey('ctrl', 'c')
-    time.sleep(2)
-    
-    markup = pyperclip.paste()
-
-    pyautogui.hotkey('ctrl', 'w')
-    pyautogui.hotkey('ctrl', 'w')
-
+    print(url)
     # load json data
     fields_input = utils.load_database()
 
-    # parse local variable markup
-    soup = BeautifulSoup(markup, "html.parser")
-
-    # parse listings if any
     if 'autoscout24' in url:
-        containers = soup.find_all('section')
-        links = ['https://www.autoscout24.ch' + listing.find('a')['href'] for listing in containers[-1].find_all('article')]
-        links = [link for link in links if link not in fields_input['ignored']]
+        # generate webbrowser object
+        webbrowser.register('chrome', None, webbrowser.GenericBrowser(CHROME_PATH))
+        webbrowser.get('chrome').open(url, new=0, autoraise=True)
+        time.sleep(4)
+
+        # navigate using shortcuts and transfer clipboard markup to variable
+        pyautogui.hotkey('ctrl', 'u')
+        time.sleep(2)
+        pyautogui.hotkey('ctrl', 'a')
+        time.sleep(2)
+        pyautogui.hotkey('ctrl', 'c')
+        time.sleep(2)
+        
+        markup = pyperclip.paste()
+
+        pyautogui.hotkey('ctrl', 'w')
+        pyautogui.hotkey('ctrl', 'w')
+
+        # parse local variable markup
+        soup = BeautifulSoup(markup, "html.parser")
+
+        try:
+            # parse listings if any
+            containers = soup.find_all('section')
+            links = ['https://www.autoscout24.ch' + listing.find('a')['href'] for listing in containers[-1].find_all('article')]
+            links = [link for link in links if link not in fields_input['ignored']]
+        except IndexError:
+            # Captcha raised
+            return []
+
     elif 'anibis' in url:
-        print('WIP')
+        page = requests.get(url, headers = HEADERS)
+        soup = BeautifulSoup(page.content, 'html.parser')
+
+        links = ['https://www.anibis.ch' + article.find('a')['href'] for article in soup.find_all('article') if article.get_text() != '']
+        links = [link for link in links if link not in fields_input['ignored']]
 
     # add to ignored
     with open(_DBJSON, 'w') as dbjson:
@@ -190,7 +208,6 @@ def req_fetch(url : str):
             fields_input['ignored'].append(link)
         json.dump(fields_input, dbjson)
         dbjson.close()
-
     return links
 
 # send mail to the address specified in settings
