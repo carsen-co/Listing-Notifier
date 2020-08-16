@@ -55,7 +55,7 @@ class Interface(Tk):
 class Main(Frame):
 
     # dynamically change models based on the manufacturer selected
-    def change_models(self, mainc, selected_make):
+    def change_models(self, mainc, selected_make : str):
         
         global model_field
         model_field = ttk.Combobox(mainc, width = 17) 
@@ -211,7 +211,6 @@ class Main(Frame):
 
 
         # ========== TREE CONTENT
-        global searches_tree
         # generate treeview
         searches_tree = ttk.Treeview(mainc, height=15)
         searches_tree["columns"]=("Price","Registration")

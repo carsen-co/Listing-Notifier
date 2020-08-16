@@ -9,14 +9,14 @@ _DBJSON = './resources/db.json'
 _MAKESJSON = './resources/makes.json'
 _SETTINGSJSON = './resources/settings.json'
 
-def load_settings():
+def load_settings() -> dict:
     with open(_SETTINGSJSON, mode='r') as st:
         settings = st.read()
         settings = (json.loads(settings))
         st.close()
     return settings
-    
-def load_makes(site):
+
+def load_makes(site : str) -> dict:
     with open(_MAKESJSON, 'r', encoding="utf-8", newline='') as mjson:
         data = mjson.read()
         makes_dict = (json.loads(data))
@@ -24,7 +24,7 @@ def load_makes(site):
         mjson.close()
     return makes_dict
 
-def load_database():
+def load_database() -> dict:
     with open(_DBJSON) as dbjson:
         fields_input = json.load(dbjson)
         dbjson.close()
@@ -32,8 +32,8 @@ def load_database():
 
 # run toggle functions
 def run_threader():
-    settings = load_settings()
 
+    settings = load_settings()
     running = settings['running']
     if running:
         running = False

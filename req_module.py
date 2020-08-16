@@ -48,7 +48,7 @@ def search_thread():
         send_mail(links)
 
 # generate autoscout url for parameters
-def autoscout_generate_url(search_item) -> str:
+def autoscout_generate_url(search_item : dict) -> str:
 
     # read makes file
     makes_dict = utils.load_makes('autoscout24_ch')
@@ -95,7 +95,7 @@ def autoscout_generate_url(search_item) -> str:
     return AUTOSCOUT_URL + url_param
 
 # generate anibis url for parameters
-def anibis_generate_url(search_item) -> str:
+def anibis_generate_url(search_item : dict) -> str:
 
     # read makes file
     makes_dict = utils.load_makes('anibis_ch')
@@ -159,8 +159,8 @@ def anibis_generate_url(search_item) -> str:
     return ANIBIS_URL + url_param
 
 # fetch the url for the listings
-def req_fetch(url : str):
-    print(url)
+def req_fetch(url : str) -> list:
+
     # load json data
     fields_input = utils.load_database()
 
@@ -211,7 +211,7 @@ def req_fetch(url : str):
     return links
 
 # send mail to the address specified in settings
-def send_mail(links):
+def send_mail(links : list):
     
     # read settings
     settings = utils.load_settings()
