@@ -101,6 +101,7 @@ class Main(Frame):
             search['price'] = str(price_field_from.get()) + " - " + str(price_field_to.get())
             search['registration'] = str(reg_field_from.get()) + " - " + str(reg_field_to.get())
             search['mileage'] = str(mileage_field_from.get()) + " - " + str(mileage_field_to.get())
+            search['transmission'] = str(trans_field.get())
             fields_input['searches'].append(search)
 
             with open(_DBJSON, 'w') as dbjson:
@@ -204,9 +205,24 @@ class Main(Frame):
         reg_field_to = ttk.Entry(mainc)
         reg_field_to.grid(row=60,column=40)
 
+
+        # transmission type
+        trans_txt = ttk.Label(mainc, text="Transmission type:")
+        trans_txt['font'] = labelf
+        trans_txt.grid(row=80,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
+
+        trans_field = ttk.Combobox(mainc, width = 17) 
+        trans_field.grid(row=80,column=20)
+        trans_dict = ('Any', 'Automatic', 'Manual')
+
+        trans_field['values'] = trans_dict
+        trans_field.current(0)
+        trans_field.bind("<<ComboboxSelected>>")
+
+
         # search button
         search_button = Button(mainc, text="Index!",bg='#5e5e5e', fg='#eae8e8', command=retrieve_inputs)
-        search_button.grid(row=80,column=10,columnspan=40,padx=(10, 10),pady=(10, 10))
+        search_button.grid(row=90,column=10,columnspan=40,padx=(10, 10),pady=(5,5))
         search_button['font'] = title_font
 
 
@@ -222,7 +238,7 @@ class Main(Frame):
         searches_tree.heading("#1", text="Price", anchor=CENTER)
         searches_tree.heading("#2",text="Registration", anchor=CENTER)
 
-        searches_tree.grid(row=90,column=10,columnspan=40,rowspan=60,padx=5)
+        searches_tree.grid(row=100,column=10,columnspan=40,rowspan=50,padx=5)
 
         try:
             fields_input = load_database()
@@ -255,7 +271,7 @@ class Main(Frame):
         run_toggle_icon = PhotoImage(file="./resources/icons/run_toggle.png").subsample(4,4)
         run_toggle_button = Button(mainc, image = run_toggle_icon,compound = LEFT, bg='#fff', command=run)
         run_toggle_button.image = run_toggle_icon
-        run_toggle_button.grid(row=90, column=50)
+        run_toggle_button.grid(row=100, column=50)
         run_toggle_button.config(width=50, height=50)
 
         # activator button
@@ -279,7 +295,7 @@ class Main(Frame):
         activator_toggle_icon = PhotoImage(file="./resources/icons/activator.png").subsample(4,4)
         activator_toggle_button = Button(mainc, image = activator_toggle_icon,compound = LEFT, bg='#fff', command=activator)
         activator_toggle_button.image = activator_toggle_icon
-        activator_toggle_button.grid(row=100, column=50)
+        activator_toggle_button.grid(row=110, column=50)
         activator_toggle_button.config(width=50, height=50)
 
         # remove button

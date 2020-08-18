@@ -90,6 +90,13 @@ def autoscout_generate_url(search_item : dict) -> str:
     if mileage[1] != '':
         url_param += '&kmto=' + mileage[1]
 
+    # transmission
+    trans_type = search_item['transmission']
+    if trans_type == 'Automatic':
+        url_param += '&trans=187%25%2C21%2C209%2C189%2C188%2C187%2C190'
+    if trans_type == 'Manual':
+        url_param += '&trans=20%2C210%2C186'
+
     url_param += '&vehtyp=10'
 
     return AUTOSCOUT_URL + url_param
@@ -107,6 +114,13 @@ def anibis_generate_url(search_item : dict) -> str:
         if make['n'] == search_item['manufacturer'].lower():
             make_id = make['i']
             url_param = '?aidl=' + make_id
+
+    # transmission
+    trans_type = search_item['transmission']
+    if trans_type == 'Automatic':
+        url_param += '%2C828'
+    if trans_type == 'Manual':
+        url_param += '%2C829'
 
     # price
     if search_item['price'] != ' - ':
