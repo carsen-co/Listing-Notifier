@@ -66,98 +66,81 @@ def autoscout_generate_url(search_item : dict) -> str:
                     url_param = make['n'] + '--' + model['m'] + '?make=' + make_id + '&model=' + model_id
 
     # check if no make was selected
-    url_param += 'alle-marken'
+    if url_param == '':
+        url_param += 'alle-marken'
 
     # add model version
-    if search_item['version'] != '' and url_param != 'alle-marken':
+    if search_item['version'] != '' and 'alle-marken' not in url_param:
         url_param += '&typename=' + search_item['version']
 
     # price
     price = search_item['price'].split(' - ')
-    if price[0] != '':
+    if search_item['registration'] != ' - ':
         if url_param == 'alle-marken':
             url_param += '?'
         else:
             url_param += '&'
-        url_param += 'pricefrom=' + price[0]
-    if price[1] != '':
-        if url_param == 'alle-marken':
-            url_param += '?'
-        else:
-            url_param += '&'
-        url_param += 'priceto=' + price[1]
+
+        if price[0] != '':
+            url_param += 'pricefrom=' + price[0]
+        if price[1] != '':
+            url_param += 'priceto=' + price[1]
 
     # registration
     reg = search_item['registration'].split(' - ')
-    if reg[0] != '':
+    if search_item['registration'] != ' - ':
         if url_param == 'alle-marken':
             url_param += '?'
         else:
             url_param += '&'
-        url_param += '&yearfrom=' + reg[0]
-    if reg[1] != '':
-        if url_param == 'alle-marken':
-            url_param += '?'
-        else:
-            url_param += '&'
-        url_param += '&yearto=' + reg[1]
+
+        if reg[0] != '':
+            url_param += 'yearfrom=' + reg[0]
+        if reg[1] != '':
+            url_param += 'yearto=' + reg[1]
 
     # mileage
     mileage = search_item['mileage'].split(' - ')
-    if mileage[0] != '':
+    if search_item['mileage'] != ' - ':
         if url_param == 'alle-marken':
             url_param += '?'
         else:
             url_param += '&'
-        url_param += '&kmfrom=' + mileage[0]
-    if mileage[1] != '':
-        if url_param == 'alle-marken':
-            url_param += '?'
-        else:
-            url_param += '&'
-        url_param += '&kmto=' + mileage[1]
+
+        if mileage[0] != '':
+            url_param += 'kmfrom=' + mileage[0]
+        if mileage[1] != '':
+            url_param += 'kmto=' + mileage[1]
 
     # transmission
     trans_type = search_item['transmission']
+    if trans_type != 'Any':
+        if url_param == 'alle-marken':
+            url_param += '?'
+        else:
+            url_param += '&'
+
     if trans_type == 'Automatic':
-        if url_param == 'alle-marken':
-            url_param += '?'
-        else:
-            url_param += '&'
-        url_param += '&trans=187%25%2C21%2C209%2C189%2C188%2C187%2C190'
+        url_param += 'trans=187%25%2C21%2C209%2C189%2C188%2C187%2C190'
     if trans_type == 'Manual':
-        if url_param == 'alle-marken':
-            url_param += '?'
-        else:
-            url_param += '&'
-        url_param += '&trans=20%2C210%2C186'
+        url_param += 'trans=20%2C210%2C186'
 
     # fuel
     fuel_type = search_item['fuel']
-    if fuel_type == 'Gasoline':
+    if fuel_type != 'Any':
         if url_param == 'alle-marken':
             url_param += '?'
         else:
             url_param += '&'
-        url_param += '&fuel=14'
-    if fuel_type == 'Diesel':
-        if url_param == 'alle-marken':
-            url_param += '?'
-        else:
-            url_param += '&'
-        url_param += '&fuel=15'
-    if fuel_type == 'Electric':
-        if url_param == 'alle-marken':
-            url_param += '?'
-        else:
-            url_param += '&'
-        url_param += '&fuel=16'
-    if fuel_type == 'Hybrid':
-        if url_param == 'alle-marken':
-            url_param += '?'
-        else:
-            url_param += '&'
-        url_param += '&fuel=214%2C246%2C248%2C243%2C213%2C245%2C247%2C240'
+
+        if fuel_type == 'Gasoline':
+            url_param += 'fuel=14'
+        if fuel_type == 'Diesel':
+            url_param += 'fuel=15'
+        if fuel_type == 'Electric':
+            url_param += 'fuel=16'
+        if fuel_type == 'Hybrid':
+            url_param += 'fuel=214%2C246%2C248%2C243%2C213%2C245%2C247%2C240'
 
     url_param += '&vehtyp=10'
 
@@ -179,29 +162,49 @@ def anibis_generate_url(search_item : dict) -> str:
 
     # transmission
     trans_type = search_item['transmission']
-    if trans_type == 'Automatic':
-        url_param += '%2C828'
-    if trans_type == 'Manual':
-        url_param += '%2C829'
+    if trans_type != 'Any':
+        if url_param == '':
+            url_param += '?aidl='
+        else:
+            url_param += '%2C'
+
+        if trans_type == 'Automatic':
+            url_param += '828'
+        if trans_type == 'Manual':
+            url_param += '829'
 
     # fuel
     fuel_type = search_item['fuel']
-    if fuel_type == 'Gasoline':
-        url_param += '%2C1041'
-    if fuel_type == 'Diesel':
-        url_param += '%2C1042'
-    if fuel_type == 'Electric':
-        url_param += '%2C1043'
-    if fuel_type == 'Hybrid':
-        url_param += '%2C1046'
+    if fuel_type != 'Any':
+        if url_param == '':
+            url_param += '?aidl='
+        else:
+            url_param += '%2C'
+
+        if fuel_type == 'Gasoline':
+            url_param += '1041'
+        if fuel_type == 'Diesel':
+            url_param += '1042'
+        if fuel_type == 'Electric':
+            url_param += '1043'
+        if fuel_type == 'Hybrid':
+            url_param += '1046'
 
     # price
     if search_item['price'] != ' - ':
+        if url_param == '':
+            url_param += '?aral='
+        else:
+            if 'aral=' in url_param:
+                url_param += '%2C'
+            else:
+                url_param += '&aral='
+
         price = search_item['price'].split(' - ')
         if price[0] != '':
-            url_param += '&aral=834_' + price[0]
+            url_param += '834_' + price[0]
         else:
-            url_param += '&aral=834_0'
+            url_param += '834_0'
         if price[1] != '':
             url_param += '_' + price[1]
         else:
@@ -209,11 +212,19 @@ def anibis_generate_url(search_item : dict) -> str:
 
     # mileage
     if search_item['mileage'] != ' - ':
+        if url_param == '':
+            url_param += '?aral='
+        else:
+            if 'aral=' in url_param:
+                url_param += '%2C'
+            else:
+                url_param += '&aral='
+
         mileage = search_item['mileage'].split(' - ')
         if mileage[0] != '':
-            url_param += '%2C832_' + mileage[0]
+            url_param += '832_' + mileage[0]
         else:
-            url_param += '%2C832_0'
+            url_param += '832_0'
         if mileage[1] != '':
             url_param += '_' + mileage[1]
         else:
@@ -221,11 +232,19 @@ def anibis_generate_url(search_item : dict) -> str:
 
     # registration
     if search_item['registration'] != ' - ':
+        if url_param == '':
+            url_param += '?aral='
+        else:
+            if 'aral=' in url_param:
+                url_param += '%2C'
+            else:
+                url_param += '&aral='
+
         reg = search_item['registration'].split(' - ')
         if reg[0] != '':
-            url_param += '%2C833_' + reg[0]
+            url_param += '833_' + reg[0]
         else:
-            url_param += '%2C833_0'
+            url_param += '833_0'
         if reg[1] != '':
             url_param += '_' + reg[1]
         else:
@@ -240,8 +259,12 @@ def anibis_generate_url(search_item : dict) -> str:
     # add model version
     if search_item['version'] != '':
         url_param += '%20' + search_item['version']
-    
-    url_param += '%25'
+
+    try:
+        if make_id:
+            url_param += '%25'
+    except UnboundLocalError:
+        pass
 
     return ANIBIS_URL + url_param
 
