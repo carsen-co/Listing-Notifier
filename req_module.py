@@ -97,6 +97,17 @@ def autoscout_generate_url(search_item : dict) -> str:
     if trans_type == 'Manual':
         url_param += '&trans=20%2C210%2C186'
 
+    # fuel
+    fuel_type = search_item['fuel']
+    if fuel_type == 'Gasoline':
+        url_param += '&fuel=14'
+    if fuel_type == 'Diesel':
+        url_param += '&fuel=15'
+    if fuel_type == 'Electric':
+        url_param += '&fuel=16'
+    if fuel_type == 'Hybrid':
+        url_param += '&fuel=214%2C246%2C248%2C243%2C213%2C245%2C247%2C240'
+
     url_param += '&vehtyp=10'
 
     return AUTOSCOUT_URL + url_param
@@ -121,6 +132,17 @@ def anibis_generate_url(search_item : dict) -> str:
         url_param += '%2C828'
     if trans_type == 'Manual':
         url_param += '%2C829'
+
+    # fuel
+    fuel_type = search_item['fuel']
+    if fuel_type == 'Gasoline':
+        url_param += '%2C1041'
+    if fuel_type == 'Diesel':
+        url_param += '%2C1042'
+    if fuel_type == 'Electric':
+        url_param += '%2C1043'
+    if fuel_type == 'Hybrid':
+        url_param += '%2C1046'
 
     # price
     if search_item['price'] != ' - ':

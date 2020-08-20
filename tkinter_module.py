@@ -102,6 +102,7 @@ class Main(Frame):
             search['registration'] = str(reg_field_from.get()) + " - " + str(reg_field_to.get())
             search['mileage'] = str(mileage_field_from.get()) + " - " + str(mileage_field_to.get())
             search['transmission'] = str(trans_field.get())
+            search['fuel'] = str(fuel_field.get())
             fields_input['searches'].append(search)
 
             with open(_DBJSON, 'w') as dbjson:
@@ -218,6 +219,20 @@ class Main(Frame):
         trans_field['values'] = trans_dict
         trans_field.current(0)
         trans_field.bind("<<ComboboxSelected>>")
+
+
+        # fuel type
+        fuel_txt = ttk.Label(mainc, text="Fuel type:")
+        fuel_txt['font'] = labelf
+        fuel_txt.grid(row=81,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
+
+        fuel_field = ttk.Combobox(mainc, width = 17) 
+        fuel_field.grid(row=81,column=20)
+        fuel_dict = ('Any', 'Gasoline', 'Hybrid', 'Diesel', 'Electric')
+
+        fuel_field['values'] = fuel_dict
+        fuel_field.current(0)
+        fuel_field.bind("<<ComboboxSelected>>")
 
 
         # search button
