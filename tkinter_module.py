@@ -210,10 +210,10 @@ class Main(Frame):
         # transmission type
         trans_txt = ttk.Label(mainc, text="Transmission type:")
         trans_txt['font'] = labelf
-        trans_txt.grid(row=80,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
+        trans_txt.grid(row=70,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
 
         trans_field = ttk.Combobox(mainc, width = 17) 
-        trans_field.grid(row=80,column=20)
+        trans_field.grid(row=70,column=20)
         trans_dict = ('Any', 'Automatic', 'Manual')
 
         trans_field['values'] = trans_dict
@@ -224,10 +224,10 @@ class Main(Frame):
         # fuel type
         fuel_txt = ttk.Label(mainc, text="Fuel type:")
         fuel_txt['font'] = labelf
-        fuel_txt.grid(row=81,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
+        fuel_txt.grid(row=80,column=10,padx=(10,10), pady=(5,5), sticky = 'w')
 
         fuel_field = ttk.Combobox(mainc, width = 17) 
-        fuel_field.grid(row=81,column=20)
+        fuel_field.grid(row=80,column=20)
         fuel_dict = ('Any', 'Gasoline', 'Hybrid', 'Diesel', 'Electric')
 
         fuel_field['values'] = fuel_dict
